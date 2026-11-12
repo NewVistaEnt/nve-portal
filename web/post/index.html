@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Post an Update · New Vista</title>
+<link rel="icon" href="../assets/logo/nv-mark.svg">
+<link rel="stylesheet" href="../assets/brand.css">
+<style>
+.pad{padding-block:20px 60px}
+.pick{display:grid;gap:8px;margin-top:14px}
+.pick button{display:flex;justify-content:space-between;gap:12px;align-items:center;text-align:left;width:100%;background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:14px 16px;cursor:pointer}
+.pick button b{display:block}
+.pick button span{color:var(--dim);font-size:13.5px}
+.pick button[aria-pressed="true"]{border-color:var(--blossom-fill);box-shadow:0 0 0 2px var(--blossom-wash)}
+textarea#body{width:100%;font-size:16px;color:var(--ink);background:var(--ground);border:1px solid var(--line2);border-radius:10px;padding:12px;min-height:120px;resize:vertical}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;margin-top:10px}
+.thumbs div{aspect-ratio:1;max-width:100%;border-radius:8px;background:var(--raise) center/cover;position:relative}
+.thumbs button{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;line-height:1}
+.addph{display:inline-flex;align-items:center;gap:8px;margin-top:12px;border:1px dashed var(--line2);border-radius:999px;padding:9px 16px;cursor:pointer;font-weight:600;font-size:14px;color:var(--seedling)}
+.addph input{display:none}
+.go2{width:100%;margin-top:16px;padding:14px;font-size:16px}
+.mine{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px 18px;border-top:1px solid var(--line);font-size:14px;align-items:start}
+.mine:first-child{border-top:0}
+.mine .d{color:var(--faint);font-size:12.5px}
+.mine.off p{text-decoration:line-through;color:var(--faint)}
+.note{color:var(--dim);font-size:13.5px;margin-top:10px}
+</style>
+</head>
+<body>
+<div id="app"><p class="loading">Loading…</p></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../assets/config.js"></script>
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  var $ = NV.$, $$ = NV.$$, esc = NV.esc, sb = NV.sb, app = $("#app");
+  var me = null, portals = [], chosen = null, files = [];
+
+  async function start() {
+    await NV.session({ el: app, title: "Post an update", text: "For the New Vista team. Enter your work email and we'll send you a sign-in link." });
+    var email = (await sb.auth.getUser()).data.user.email.toLowerCase();
+    var r = await sb.from("staff").select("id,name,title,role").ilike("email", email).eq("active", true).maybeSingle();
+    me = r.data;
+    if (!me) { app.innerHTML = '<div class="wrap narrow pad"><div class="card cardb"><h2>Not on the team list</h2><p style="margin-top:8px;color:var(--dim)">Ask Jana to add ' + esc(email) + ' in the admin.</p><p style="margin-top:14px"><button class="btn" id="out">Sign out</button></p></div></div>'; $("#out").onclick = out; return; }
+    var q = sb.from("portals").select("id,project_name,property_address,status").neq("status", "archived").order("created_at", { ascending: false });
+    if (me.role !== "admin") {
+      var t = await sb.from("portal_team").select("portal_id").eq("staff_id", me.id);
+      var ids = (t.data || []).map(function (x) { return x.portal_id; });
+      q = q.in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+    }
+    portals = (await q).data || [];
+    var want = new URLSearchParams(location.search).get("p");
+    chosen = portals.find(function (p) { return p.id === want; }) || (portals.length === 1 ? portals[0] : null);
+    render();
+  }
+  async function out() { await sb.auth.signOut(); location.reload(); }
+
+  function render() {
+    app.innerHTML =
+      '<header class="top"><div class="wrap"><img src="../assets/logo/nv-horizontal-reverse.svg" alt="New Vista Enterprises"><span class="ttl">Post an update</span><div class="right"><span class="nm">' + esc(me.name) + '</span><button type="button" id="out">Sign out</button></div></div></header>' +
+      '<main class="wrap narrow pad">' +
+      (portals.length ? '<div class="card cardb"><h2 style="font-size:18px">Which project?</h2><div class="pick">' + portals.map(function (p) { return '<button type="button" data-p="' + p.id + '" aria-pressed="' + (chosen && chosen.id === p.id) + '"><span><b>' + esc(p.project_name) + "</b><span>" + esc(p.property_address || "") + "</span></span>" + (p.status === "invited" ? '<span class="pill ok">Live</span>' : '<span class="pill wait">Not sent yet</span>') + "</button>"; }).join("") + "</div></div>"
+        : '<div class="card cardb"><h2 style="font-size:18px">No projects yet</h2><p style="margin-top:8px;color:var(--dim)">Jana adds you to a project in the admin. Once she does, it shows up here.</p></div>') +
+      (chosen ? '<form class="card cardb" id="pf" style="margin-top:16px"><label class="lab" for="body" style="display:block;margin-bottom:8px">Update for ' + esc(chosen.project_name) + '</label>' +
+        '<textarea id="body" maxlength="4000" placeholder="What happened today? e.g. “Base is compacted and edging is set. Pavers go down Thursday.”"></textarea>' +
+        '<div class="thumbs" id="thumbs"></div><label class="addph">+ Add photos<input type="file" id="ph" accept="image/*" multiple></label>' +
+        '<button class="btn warm go2" type="submit">Post to the client\'s page</button><p class="note">Posts go live right away. Jana can hide one if needed.</p></form>' +
+        '<div class="card" style="margin-top:16px"><div class="cardh"><h3>Recent posts</h3></div><div id="mine"><p class="empty">Loading…</p></div></div>' : "") +
+      "</main>";
+    $("#out").onclick = out;
+    $$("[data-p]").forEach(function (b) { b.onclick = function () { chosen = portals.find(function (p) { return p.id === b.dataset.p; }); files = []; history.replaceState(null, "", "?p=" + chosen.id); render(); }; });
+    if (chosen) { wire(); loadMine(); }
+  }
+
+  function thumbs() {
+    $("#thumbs").innerHTML = files.map(function (f, i) { return '<div style="background-image:url(\'' + f.url + '\')"><button type="button" data-x="' + i + '" aria-label="Remove photo">×</button></div>'; }).join("");
+    $$("[data-x]").forEach(function (b) { b.onclick = function () { files.splice(Number(b.dataset.x), 1); thumbs(); }; });
+  }
+
+  // Shrink big phone photos before upload (keeps posting fast on job sites).
+  function shrink(file) {
+    return new Promise(function (resolve) {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        var s = Math.min(1, 2000 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+        c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(function (b) { resolve({ blob: b || file, url: url, type: b ? "image/jpeg" : file.type }); }, "image/jpeg", 0.85);
+      };
+      img.onerror = function () { resolve({ blob: file, url: url, type: file.type }); };
+      img.src = url;
+    });
+  }
+
+  function wire() {
+    $("#ph").onchange = async function () {
+      for (var i = 0; i < this.files.length && files.length < 9; i++) files.push(await shrink(this.files[i]));
+      this.value = ""; thumbs();
+    };
+    $("#pf").onsubmit = async function (e) {
+      e.preventDefault();
+      var body = $("#body").value.trim();
+      if (!body) { NV.toast("Write a quick note first."); return; }
+      var btn = $(".go2"); btn.disabled = true; btn.textContent = "Posting…";
+      try {
+        var paths = [];
+        for (var i = 0; i < files.length; i++) {
+          var ext = files[i].type === "image/png" ? "png" : files[i].type === "image/heic" ? "heic" : files[i].type === "image/webp" ? "webp" : "jpg";
+          var path = "updates/" + chosen.id + "/" + (crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + i) + "." + ext;
+          var up = await sb.storage.from("portal-media").upload(path, files[i].blob, { contentType: files[i].type || "image/jpeg" });
+          if (up.error) throw new Error("A photo didn't upload. Try again.");
+          paths.push(path);
+        }
+        var ins = await sb.from("updates").insert({ portal_id: chosen.id, author_id: me.id, body: body, photo_paths: paths });
+        if (ins.error) throw new Error("Couldn't post. Try again.");
+        files = []; $("#body").value = ""; thumbs(); NV.toast("Posted. It's on the client's page now."); loadMine();
+      } catch (err) { NV.toast(err.message); }
+      finally { btn.disabled = false; btn.textContent = "Post to the client's page"; }
+    };
+  }
+
+  async function loadMine() {
+    var r = await sb.from("updates").select("id,body,created_at,hidden,author_id,staff(name)").eq("portal_id", chosen.id).order("created_at", { ascending: false }).limit(15);
+    var rows = r.data || [];
+    $("#mine").innerHTML = rows.length ? rows.map(function (u) {
+      var mine = u.author_id === me.id;
+      return '<div class="mine' + (u.hidden ? " off" : "") + '"><div><p>' + esc(u.body.length > 160 ? u.body.slice(0, 160) + "…" : u.body) + '</p><span class="d">' + esc((u.staff && u.staff.name) || "Team") + " · " + esc(NV.when(u.created_at)) + (u.hidden ? " · Hidden" : "") + "</span></div>" +
+        (mine || me.role === "admin" ? '<button class="btn small" type="button" data-h="' + u.id + '" data-v="' + (!u.hidden) + '">' + (u.hidden ? "Show" : "Hide") + "</button>" : "") + "</div>";
+    }).join("") : '<p class="empty">No posts yet.</p>';
+    $$("[data-h]").forEach(function (b) { b.onclick = async function () { var r2 = await sb.from("updates").update({ hidden: b.dataset.v === "true" }).eq("id", b.dataset.h); if (r2.error) NV.toast("Couldn't change that."); loadMine(); }; });
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>

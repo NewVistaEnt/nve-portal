@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>New Lead · New Vista</title>
+<link rel="icon" href="../assets/logo/nv-mark.svg">
+<link rel="stylesheet" href="../assets/brand.css">
+<style>
+.formhd{background:#2F3F31;color:#FFFFF8}
+.formhd .wrap{padding-block:22px 26px}
+.formhd img{height:28px;display:block}
+.formhd h1{font-size:clamp(26px,5vw,34px);margin-top:18px}
+.formhd p{opacity:.8;margin-top:6px;max-width:48ch}
+.pad{padding-block:10px 60px}
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:18px;margin-top:16px}
+.sec h2{font-size:17px;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sec h2 .n{width:24px;height:24px;border-radius:50%;background:var(--pine);color:var(--on-pine);display:grid;place-items:center;font-family:var(--f-label);font-size:11px;letter-spacing:0}
+.sec .grid+.grid,.sec .seg+.grid,.sec .grid+.chk,.sec .chk+.extra,.sec .grid+.seg{margin-top:12px}
+.extra{margin-top:12px;padding:14px;border-radius:12px;background:var(--ground);border:1px dashed var(--line2)}
+.add{margin-top:14px;background:none;border:1px dashed var(--line2);border-radius:999px;padding:9px 16px;cursor:pointer;font-weight:600;font-size:14px;color:var(--seedling)}
+.contact2{margin-top:14px;padding:14px;border-radius:12px;background:var(--ground);border:1px solid var(--line)}
+.contact2 .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.x{background:none;border:0;cursor:pointer;color:var(--faint);font-size:13px;text-decoration:underline}
+.submit{display:block;width:100%;margin-top:20px;padding:16px;border:0;border-radius:999px;background:var(--blossom-fill);color:#fff;font-weight:700;font-size:16.5px;cursor:pointer}
+.submit[disabled]{opacity:.6}
+.privacy{text-align:center;color:var(--faint);font-size:13px;margin-top:12px}
+.done{margin:40px auto;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:34px 24px;box-shadow:var(--shadow)}
+.done .ok{width:56px;height:56px;border-radius:50%;background:var(--seedling-wash);color:var(--seedling);display:grid;place-items:center;margin:0 auto;font-size:26px}
+.done h2{font-size:26px;margin-top:16px}
+.done p{color:var(--dim);margin-top:8px}
+.gate{margin-top:24px}
+.gate .btn{margin-top:14px;width:100%;padding:13px}
+.bad{margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--blossom-wash);font-size:14px}
+</style>
+</head>
+<body>
+<div class="formhd"><div class="wrap narrow">
+  <img src="../assets/logo/nv-horizontal-reverse.svg" alt="New Vista Enterprises">
+  <h1>New lead</h1>
+  <p>Takes about a minute. Everything goes straight to Jana for Aspire.</p>
+</div></div>
+
+<main class="wrap narrow pad">
+  <!-- Team code, asked once per phone -->
+  <form class="sec gate" id="gate" hidden novalidate>
+    <h2>Team code</h2>
+    <p style="color:var(--dim)">Ask Jana for the team code. You only need to enter it once on this phone.</p>
+    <div class="fld" style="margin-top:14px"><label for="code">Code</label><input id="code" autocomplete="off" autocapitalize="off"></div>
+    <button class="btn go" type="submit">Unlock the form</button>
+    <div class="bad" id="gatebad" hidden role="alert"></div>
+  </form>
+
+  <p class="loading" id="loading">Loading…</p>
+
+  <form id="leadform" novalidate hidden>
+    <input type="text" name="website" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+
+    <div class="sec">
+      <h2><span class="n">1</span>About you</h2>
+      <div class="grid g2">
+        <div class="fld" id="f-by"><label for="by">Your name <span class="req">*</span></label><select id="by"></select><div class="msg">Pick your name.</div></div>
+        <div class="fld" id="f-owner"><label for="owner">Account owner <span class="req">*</span></label><select id="owner"></select><div class="help">Who will sell or manage this one</div><div class="msg">Pick an account owner.</div></div>
+      </div>
+      <div class="fld" style="margin-top:14px"><span class="flabel">Brand</span><div class="seg many" id="brand"></div></div>
+    </div>
+
+    <div class="sec">
+      <h2><span class="n">2</span>The property</h2>
+      <div class="seg" id="kind"><button type="button" aria-pressed="true">Residential</button><button type="button" aria-pressed="false">Commercial</button></div>
+      <div class="grid g2" id="resname">
+        <div class="fld" id="f-first"><label for="first">First name <span class="req">*</span></label><input id="first" autocomplete="off"><div class="msg">Add a first name.</div></div>
+        <div class="fld" id="f-last"><label for="last">Last name <span class="req">*</span></label><input id="last" autocomplete="off"><div class="msg">Add a last name.</div></div>
+      </div>
+      <div class="grid" id="comname" hidden>
+        <div class="fld" id="f-prop"><label for="prop">Property name <span class="req">*</span></label><input id="prop" placeholder="e.g. Gates Mills Medical Center"><div class="msg">Add the property name.</div></div>
+      </div>
+      <div class="grid">
+        <div class="fld" id="f-addr"><label for="addr">Property address <span class="req">*</span></label><input id="addr" placeholder="Street, city, state, ZIP" autocomplete="off"><div class="msg">Add the property address.</div></div>
+      </div>
+      <label class="chk" style="margin-top:14px"><input type="checkbox" id="samebill" checked> Billing address is the same</label>
+      <div class="extra" id="billaddr" hidden><div class="fld" id="f-baddr"><label for="baddr">Billing address <span class="req">*</span></label><input id="baddr"><div class="msg">Add the billing address.</div></div></div>
+    </div>
+
+    <div class="sec">
+      <h2><span class="n">3</span>Who we're talking to</h2>
+      <div class="grid g2">
+        <div class="fld" id="f-cname"><label for="cname">Primary contact <span class="req">*</span></label><input id="cname" placeholder="First and last name"><div class="msg">Add the contact's name.</div></div>
+        <div class="fld" id="f-phone"><label for="phone">Phone <span class="req">*</span></label><input id="phone" type="tel" inputmode="tel" placeholder="(440) 555-0123"><div class="msg">Add a phone number.</div></div>
+      </div>
+      <div class="grid">
+        <div class="fld" id="f-email"><label for="email">Email <span class="req">*</span></label><input id="email" type="email" inputmode="email" autocapitalize="off" placeholder="name@example.com"><div class="help">Used for invoices and their project page. Double-check it.</div><div class="msg">That email doesn't look right.</div></div>
+      </div>
+      <label class="chk" style="margin-top:14px"><input type="checkbox" id="samecontact" checked> They're also the billing contact</label>
+      <div class="extra" id="billcontact" hidden><div class="grid g2">
+        <div class="fld" id="f-bname"><label for="bname">Billing contact <span class="req">*</span></label><input id="bname"><div class="msg">Add a name.</div></div>
+        <div class="fld" id="f-bemail"><label for="bemail">Billing email <span class="req">*</span></label><input id="bemail" type="email" autocapitalize="off"><div class="msg">Add a valid email.</div></div>
+      </div></div>
+      <div id="more"></div>
+      <button type="button" class="add" id="addc">+ Add another contact</button>
+    </div>
+
+    <div class="sec">
+      <h2><span class="n">4</span>The details</h2>
+      <div class="grid g2">
+        <div class="fld" id="f-src"><label for="src">Lead source <span class="req">*</span></label><select id="src"></select><div class="help">Same list as Aspire</div><div class="msg">Pick a lead source.</div></div>
+        <div class="fld"><span class="flabel">Paperless billing</span><div class="seg" id="paper"><button type="button" aria-pressed="true">Yes</button><button type="button" aria-pressed="false">No</button></div></div>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <div class="fld"><label for="said">What did they say?</label><textarea id="said" placeholder="In their words. “Our back patio is cracking and we want to start over.”"></textarea></div>
+      </div>
+    </div>
+
+    <button class="submit" type="submit">Send to Jana</button>
+    <p class="privacy">Saved privately in the admin. Only Jana and admins can see it.</p>
+  </form>
+
+  <div class="done" id="done" hidden>
+    <div class="ok" aria-hidden="true">✓</div>
+    <h2>Got it. Thanks.</h2>
+    <p id="donemsg">Jana has it and will add it to Aspire.</p>
+    <p style="margin-top:22px"><button class="btn go" type="button" id="another">Add another lead</button></p>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="../assets/config.js"></script>
+<script src="../assets/app.js"></script>
+<script>
+(function () {
+  var $ = NV.$, $$ = NV.$$, esc = NV.esc, KEY = "nv-team-code";
+  function getCode() { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } }
+  function setCode(v) { try { v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); } catch (e) { /* storage off */ } }
+
+  function options(sel, list, placeholder) {
+    sel.innerHTML = '<option value="">' + (placeholder || "Choose…") + "</option>" + list.map(function (x) { return "<option>" + esc(x) + "</option>"; }).join("");
+  }
+  function segs(id, cb) {
+    $$("#" + id + " button").forEach(function (b) { b.addEventListener("click", function () { $$("#" + id + " button").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); if (cb) cb(b); }); });
+  }
+  function pick(id) { var b = $("#" + id + ' button[aria-pressed="true"]'); return b ? b.textContent : ""; }
+
+  async function load() {
+    var code = getCode();
+    if (!code) { $("#loading").hidden = true; $("#gate").hidden = false; $("#code").focus(); return; }
+    try {
+      var d = await NV.fn("lead-submit", undefined, { "x-staff-code": code });
+      options($("#by"), d.names); options($("#owner"), d.owners); options($("#src"), d.sources);
+      $("#brand").innerHTML = d.brands.map(function (b, i) { return '<button type="button" aria-pressed="' + (i === 0) + '">' + esc(b) + "</button>"; }).join("");
+      segs("brand");
+      try { var me = localStorage.getItem("nv-lead-me"); if (me) $("#by").value = me; } catch (e) { /* storage off */ }
+      $("#loading").hidden = true; $("#gate").hidden = true; $("#leadform").hidden = false;
+    } catch (e) {
+      $("#loading").hidden = true;
+      if (e.status === 401) { setCode(""); $("#gate").hidden = false; $("#gatebad").textContent = e.message; $("#gatebad").hidden = false; }
+      else { $("#loading").hidden = false; $("#loading").textContent = "Couldn't load the form. Check your connection and refresh."; }
+    }
+  }
+
+  $("#gate").addEventListener("submit", function (e) { e.preventDefault(); var v = $("#code").value.trim(); if (!v) return; setCode(v); $("#gatebad").hidden = true; $("#gate").hidden = true; $("#loading").hidden = false; load(); });
+
+  segs("paper");
+  segs("kind", function (b) { var com = b.textContent === "Commercial"; $("#resname").hidden = com; $("#comname").hidden = !com; });
+  $("#samebill").addEventListener("change", function () { $("#billaddr").hidden = this.checked; });
+  $("#samecontact").addEventListener("change", function () { $("#billcontact").hidden = this.checked; });
+  var nc = 0;
+  $("#addc").addEventListener("click", function () {
+    nc++; var d = document.createElement("div"); d.className = "contact2";
+    d.innerHTML = '<div class="hd"><b>Another contact</b><button type="button" class="x">Remove</button></div><div class="grid g2">' +
+      '<div class="fld"><label for="c' + nc + 'n">Name</label><input id="c' + nc + 'n" class="mn"></div>' +
+      '<div class="fld"><label for="c' + nc + 'r">Who are they?</label><select id="c' + nc + 'r" class="mr"><option>Spouse or partner</option><option>Property manager</option><option>Other</option></select></div>' +
+      '<div class="fld"><label for="c' + nc + 'e">Email</label><input id="c' + nc + 'e" type="email" class="me" autocapitalize="off"></div>' +
+      '<div class="fld"><label for="c' + nc + 'p">Phone</label><input id="c' + nc + 'p" type="tel" class="mp"></div></div>';
+    $(".x", d).addEventListener("click", function () { d.remove(); });
+    $("#more").appendChild(d); $("input", d).focus();
+  });
+
+  var EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  $("#leadform").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var com = pick("kind") === "Commercial";
+    var req = ["by", "owner", "addr", "cname", "phone", "email", "src"].concat(com ? ["prop"] : ["first", "last"]);
+    if (!$("#samebill").checked) req.push("baddr");
+    if (!$("#samecontact").checked) req.push("bname", "bemail");
+    var bad = null;
+    $$(".fld.err").forEach(function (x) { x.classList.remove("err"); });
+    req.forEach(function (id) {
+      var el = $("#" + id), v = el.value.trim(), ok = v !== "";
+      if (id === "email" || id === "bemail") ok = EMAIL.test(v);
+      if (!ok) { $("#f-" + id).classList.add("err"); if (!bad) bad = el; }
+    });
+    if (bad) { bad.focus(); NV.toast("A few fields need a look."); return; }
+
+    var btn = $(".submit"); btn.disabled = true; btn.textContent = "Sending…";
+    var body = {
+      website: $("#hp").value, brand: pick("brand"), kind: com ? "Commercial" : "Residential",
+      submitted_by: $("#by").value, account_owner: $("#owner").value,
+      first_name: $("#first").value, last_name: $("#last").value, property_name: $("#prop").value,
+      property_address: $("#addr").value, billing_same: $("#samebill").checked, billing_address: $("#baddr").value,
+      contact_name: $("#cname").value, contact_phone: $("#phone").value, contact_email: $("#email").value,
+      billing_contact_same: $("#samecontact").checked, billing_contact_name: $("#bname").value, billing_contact_email: $("#bemail").value,
+      paperless: pick("paper") === "Yes", lead_source: $("#src").value, notes: $("#said").value,
+      extra_contacts: $$("#more .contact2").map(function (c) { return { name: $(".mn", c).value, role: $(".mr", c).value, email: $(".me", c).value, phone: $(".mp", c).value }; }),
+    };
+    try {
+      await NV.fn("lead-submit", body, { "x-staff-code": getCode() });
+      try { localStorage.setItem("nv-lead-me", body.submitted_by); } catch (e2) { /* storage off */ }
+      var name = com ? body.property_name.trim() : (body.first_name.trim() + " " + body.last_name.trim());
+      $("#donemsg").textContent = name + " is saved. Jana has it and will add it to Aspire.";
+      $("#leadform").hidden = true; $("#done").hidden = false; window.scrollTo(0, 0);
+    } catch (err) {
+      if (err.status === 401) { setCode(""); location.reload(); return; }
+      NV.toast(err.message);
+    } finally { btn.disabled = false; btn.textContent = "Send to Jana"; }
+  });
+
+  $("#another").addEventListener("click", function () {
+    var by = $("#by").value, f = $("#leadform"); f.reset(); $("#by").value = by;
+    $("#more").innerHTML = ""; $("#billaddr").hidden = true; $("#billcontact").hidden = true;
+    $$("#kind button, #paper button").forEach(function (x) { x.setAttribute("aria-pressed", x === x.parentNode.firstElementChild); }); $("#resname").hidden = false; $("#comname").hidden = true;
+    f.hidden = false; $("#done").hidden = true; window.scrollTo(0, 0);
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

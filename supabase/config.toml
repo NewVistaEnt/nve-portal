@@ -1,0 +1,19 @@
+# Function settings. "verify_jwt = false" means the function does its own check
+# (team code, sync secret, webhook signature, or signed-in user lookup).
+[functions.lead-submit]
+verify_jwt = false
+
+[functions.aspire-sync]
+verify_jwt = false
+
+[functions.auth-email-hook]
+verify_jwt = false
+
+[functions.portal-admin]
+verify_jwt = false
+
+[functions.portal-data]
+verify_jwt = false
+
+[functions.message-contact]
+verify_jwt = false
