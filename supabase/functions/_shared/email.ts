@@ -1,52 +1,34 @@
-// Sends email through Microsoft 365 using Microsoft Graph (no SMTP, no extra service).
-// Needs an Entra ID app with the Mail.Send application permission. See SETUP.md, step 5.
+// Sends email through Resend (https://resend.com). Mail comes from @newvistaent.com once the
+// domain is verified in Resend. See SETUP.md, step 5.
 import { env, esc } from "./util.ts";
-
-let cached: { token: string; until: number } | null = null;
-
-async function graphToken(): Promise<string> {
-  if (cached && cached.until > Date.now() + 60_000) return cached.token;
-  const body = new URLSearchParams({
-    client_id: env("MS_CLIENT_ID"),
-    client_secret: env("MS_CLIENT_SECRET"),
-    scope: "https://graph.microsoft.com/.default",
-    grant_type: "client_credentials",
-  });
-  const r = await fetch(`https://login.microsoftonline.com/${env("MS_TENANT_ID")}/oauth2/v2.0/token`, { method: "POST", body });
-  if (!r.ok) throw new Error(`Microsoft sign-in failed (${r.status}): ${await r.text()}`);
-  const j = await r.json();
-  cached = { token: j.access_token, until: Date.now() + (j.expires_in ?? 3600) * 1000 };
-  return cached.token;
-}
 
 export interface Mail {
   to: string | string[];
   subject: string;
   html: string;
-  from?: string;        // mailbox to send as; defaults to MAIL_FROM (e.g. portal@newvistaent.com)
+  from?: string;        // "Name <address@newvistaent.com>"; defaults to MAIL_FROM
   cc?: string[];
+  bcc?: string[];
   replyTo?: string;
 }
 
-const list = (v?: string | string[]) => (v ? (Array.isArray(v) ? v : [v]) : []).filter(Boolean).map((address) => ({ emailAddress: { address } }));
+const list = (v?: string | string[]) => (v ? (Array.isArray(v) ? v : [v]) : []).filter(Boolean);
 
 export async function sendMail(m: Mail) {
-  const from = m.from || env("MAIL_FROM");
-  const r = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(from)}/sendMail`, {
+  const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { Authorization: `Bearer ${await graphToken()}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${env("RESEND_API_KEY")}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      message: {
-        subject: m.subject,
-        body: { contentType: "HTML", content: m.html },
-        toRecipients: list(m.to),
-        ccRecipients: list(m.cc),
-        replyTo: list(m.replyTo),
-      },
-      saveToSentItems: true,
+      from: m.from || env("MAIL_FROM"),
+      to: list(m.to),
+      cc: list(m.cc).length ? list(m.cc) : undefined,
+      bcc: list(m.bcc).length ? list(m.bcc) : undefined,
+      reply_to: m.replyTo || undefined,
+      subject: m.subject,
+      html: m.html,
     }),
   });
-  if (r.status !== 202) throw new Error(`Email failed (${r.status}): ${await r.text()}`);
+  if (!r.ok) throw new Error(`Email failed (${r.status}): ${await r.text()}`);
 }
 
 // --- Branded email shell ---------------------------------------------------
@@ -66,7 +48,7 @@ ${o.paragraphs.map((p) => `<p style="margin:14px 0 0;font-size:16px;line-height:
 ${o.button ? `<p style="margin:24px 0 0"><a href="${esc(o.button.url)}" style="display:inline-block;background:${BLOSSOM};color:#fff;text-decoration:none;font-weight:bold;padding:13px 24px;border-radius:999px;font-size:16px">${esc(o.button.label)}</a></p>` : ""}
 </td></tr>
 <tr><td style="padding:22px 28px 26px;font-size:15px">${o.signoff ?? ""}</td></tr>
-<tr><td style="background:${SAND};padding:14px 28px;font-size:11px;letter-spacing:.06em;color:#6B7468">NEW VISTA ENTERPRISES · 7572 MAYFIELD RD, CHESTERLAND, OH · FAMILY OWNED SINCE 2000</td></tr>
+<tr><td style="background:${SAND};padding:14px 28px;font-size:11px;letter-spacing:.06em;color:#6B7468">NEW VISTA ENTERPRISES · CHESTERLAND, OH · FAMILY OWNED SINCE 2000</td></tr>
 </table></td></tr></table></body></html>`;
 }
 

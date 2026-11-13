@@ -63,9 +63,12 @@ Deno.serve(async (req) => {
           button: { label: "Open my project", url: data.properties.action_link },
           signoff: `Questions any time? Just reply to this email.<br><br>${esc(sender.name)}<br><span style="color:#6B7468">${esc(sender.title ?? "New Vista Enterprises")}${sender.phone ? ` · ${esc(sender.phone)}` : ""}</span>`,
         });
-        const mail = { to: person.email, subject: `Your New Vista project page is ready`, html, replyTo: sender.email };
-        try { await sendMail({ ...mail, from: sender.email }); }
-        catch { await sendMail(mail); } // fall back to the shared portal mailbox
+        // Sent as the contact (e.g. "Jana Kowal <jana@newvistaent.com>"); replies go to her inbox,
+        // and she gets a BCC copy so she has a record of every welcome email.
+        const fromName = String(sender.name).replace(/[<>"]/g, "");
+        const mail = { to: person.email, subject: `Your New Vista project page is ready`, html, replyTo: sender.email, bcc: [sender.email] };
+        try { await sendMail({ ...mail, from: `${fromName} <${sender.email}>` }); }
+        catch { await sendMail(mail); } // fall back to the shared MAIL_FROM address
         await db.from("portal_people").update({ invited_at: new Date().toISOString() }).eq("id", person.id);
         sent.push(person.email);
       } catch (e) {

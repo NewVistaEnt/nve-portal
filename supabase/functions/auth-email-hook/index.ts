@@ -1,5 +1,5 @@
 // Supabase calls this instead of sending its own sign-in emails, so every sign-in email
-// comes from New Vista's Microsoft 365 and looks like New Vista.
+// is sent through Resend and looks like New Vista.
 // Set up in Supabase: Authentication -> Hooks -> Send Email Hook -> HTTPS -> this function's URL.
 import { Webhook } from "npm:standardwebhooks@1.0.0";
 import { admin, env, esc } from "../_shared/util.ts";
