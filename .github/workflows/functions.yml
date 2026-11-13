@@ -14,4 +14,4 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
-      - run: supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+      - run: supabase functions deploy --remote=${{ secrets.SUPABASE_PROJECT_REF }} --yes
