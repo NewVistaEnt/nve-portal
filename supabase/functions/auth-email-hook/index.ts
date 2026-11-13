@@ -22,7 +22,12 @@ Deno.serve(async (req) => {
 
   const { user, email_data: d } = p;
   const email = user.email.toLowerCase();
-  const link = `${env("SUPABASE_URL")}/auth/v1/verify?token=${encodeURIComponent(d.token_hash)}&type=${encodeURIComponent(d.email_action_type)}&redirect_to=${encodeURIComponent(d.redirect_to || env("SITE_URL"))}`;
+  // Link to our own page with the token in the address. The page only uses the token when the person
+  // presses "Sign in", so email security scanners that open links can't use it up first.
+  const target = new URL(d.redirect_to || env("SITE_URL"));
+  target.searchParams.set("th", d.token_hash);
+  target.searchParams.set("tt", d.email_action_type);
+  const link = target.toString();
 
   try {
     const db = admin();

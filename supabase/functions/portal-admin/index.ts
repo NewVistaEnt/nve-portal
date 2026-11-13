@@ -50,7 +50,10 @@ Deno.serve(async (req) => {
       try {
         await ensureUser(person.email);
         const { data, error } = await db.auth.admin.generateLink({ type: "magiclink", email: person.email, options: { redirectTo: portalUrl } });
-        if (error || !data?.properties?.action_link) throw error ?? new Error("No link");
+        if (error || !data?.properties?.hashed_token) throw error ?? new Error("No link");
+        const signInUrl = new URL(portalUrl);
+        signInUrl.searchParams.set("th", data.properties.hashed_token);
+        signInUrl.searchParams.set("tt", "magiclink");
         const first = esc(person.name.split(" ")[0] || "there");
         const html = brandedEmail({
           note: portal.invite_note || undefined,
@@ -60,7 +63,7 @@ Deno.serve(async (req) => {
             `Hi ${first}, your New Vista project <b>${esc(portal.project_name)}</b> now has its own page. You'll find your schedule, photos, updates from the crew and anything you need to pay, all in one place.`,
             "The button below signs you straight in. No password to remember.",
           ],
-          button: { label: "Open my project", url: data.properties.action_link },
+          button: { label: "Open my project", url: signInUrl.toString() },
           signoff: `Questions any time? Just reply to this email.<br><br>${esc(sender.name)}<br><span style="color:#6B7468">${esc(sender.title ?? "New Vista Enterprises")}${sender.phone ? ` · ${esc(sender.phone)}` : ""}</span>`,
         });
         // Sent as the contact (e.g. "Jana Kowal <jana@newvistaent.com>"); replies go to her inbox,

@@ -54,7 +54,7 @@
   function signIn(o) {
     return new Promise(function (resolve) {
       var problem = linkProblem();
-      var expired = problem && /expired|invalid|otp/i.test(problem);
+      var expired = o.expired || (problem && /expired|invalid|otp/i.test(problem));
       var el = o.el;
       el.innerHTML =
         '<div class="signin ' + (o.photo ? "photo" : "") + '"><div class="wrap" style="width:100%;display:grid;place-items:center">' +
@@ -82,7 +82,8 @@
         send.disabled = false; send.textContent = "Email me a sign-in link";
         if (r.error) {
           if (/signup|not allowed|not found/i.test(r.error.message)) return err("We don't have that email on file. Please use the email New Vista has for you, or call the office.");
-          if (/rate|seconds/i.test(r.error.message)) return err("We just sent one. Please wait a minute and try again.");
+          if (/seconds/i.test(r.error.message)) return err("We just sent one. Please wait a minute and try again.");
+          if (/rate limit/i.test(r.error.message)) return err("Too many sign-in emails were sent in the last hour. Use the newest email you have, or try again later.");
           return err(r.error.message);
         }
         try { localStorage.setItem("nv-email", v); } catch (e2) { /* storage off */ }
@@ -102,7 +103,35 @@
   }
 
   // Resolve with a session: existing, from the link just clicked, or after signing in.
+  // Email links carry ?th=<token hash>&tt=<type>. Email security scanners open links before people do,
+  // so the token is only used when a person presses the button, never on page load.
+  function confirmLink(o, th, tt) {
+    return new Promise(function (resolve) {
+      var el = o.el;
+      el.innerHTML =
+        '<div class="signin ' + (o.photo ? "photo" : "") + '"><div class="wrap" style="width:100%;display:grid;place-items:center">' +
+        '<div class="sbox"><img class="logo" src="' + ROOT + 'assets/logo/nv-horizontal.svg" alt="New Vista Enterprises">' +
+        "<h1>" + esc(o.confirmTitle || "You're almost in") + "</h1><p>Press the button to finish signing in.</p>" +
+        '<button class="btn warm" type="button" id="si-go">Sign in</button><div class="bad" hidden role="alert"></div></div></div></div>';
+      var go = $("#si-go", el), bad = $(".bad", el);
+      go.addEventListener("click", async function () {
+        go.disabled = true; go.textContent = "Signing in…";
+        var r = await sb.auth.verifyOtp({ token_hash: th, type: tt === "magiclink" ? "magiclink" : (tt || "email") });
+        var q = new URLSearchParams(location.search); q.delete("th"); q.delete("tt");
+        history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
+        if (r.error || !r.data.session) {
+          bad.hidden = false; bad.textContent = "That link has expired or was already used. Enter your email for a fresh one.";
+          setTimeout(function () { resolve(signIn(Object.assign({}, o, { expired: true }))); }, 1800);
+          return;
+        }
+        resolve(r.data.session);
+      });
+    });
+  }
+
   async function session(o) {
+    var q = new URLSearchParams(location.search), th = q.get("th");
+    if (th) return confirmLink(o, th, q.get("tt"));
     var s = (await sb.auth.getSession()).data.session;
     if (s) return s;
     return signIn(o);
