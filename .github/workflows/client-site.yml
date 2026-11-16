@@ -1,0 +1,39 @@
+name: Sync client site
+on:
+  push:
+    branches: [main]
+    paths: ["web/portal/**", "web/assets/**", "client-site/**", ".github/workflows/client-site.yml"]
+  workflow_dispatch:
+concurrency:
+  group: client-site
+  cancel-in-progress: true
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      CLIENT_REPO: NewVistaEnt/my-newvista
+      CLIENT_DOMAIN: my.newvistaent.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the client site
+        run: |
+          mkdir -p out
+          cp -R web/assets web/portal out/
+          cp client-site/* out/
+          touch out/.nojekyll
+          echo "$CLIENT_DOMAIN" > out/CNAME
+      - name: Push to the client repository
+        env:
+          TOKEN: ${{ secrets.CLIENT_REPO_TOKEN }}
+        run: |
+          git config --global user.name "nve-portal sync"
+          git config --global user.email "sync@users.noreply.github.com"
+          git clone "https://x-access-token:${TOKEN}@github.com/${CLIENT_REPO}.git" dest
+          cd dest
+          git checkout -B main
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -R ../out/. .
+          git add -A
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          git commit -m "Sync from nve-portal ${GITHUB_SHA::7}"
+          git push origin main
