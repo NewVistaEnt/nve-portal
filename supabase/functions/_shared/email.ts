@@ -1,6 +1,6 @@
 // Sends email through Resend (https://resend.com). Mail comes from @newvistaent.com once the
 // domain is verified in Resend. See SETUP.md, step 5.
-import { env, esc } from "./util.ts";
+import { clientUrl, env, esc } from "./util.ts";
 
 export interface Mail {
   to: string | string[];
@@ -35,7 +35,7 @@ export async function sendMail(m: Mail) {
 const PINE = "#2F3F31", BLOSSOM = "#CC6748", SNOW = "#FFFFF8", SAND = "#F2F1E7", INK = "#1F2A20", BODY = "#33402F";
 
 export function brandedEmail(o: { heading: string; paragraphs: string[]; button?: { label: string; url: string }; note?: string; coverUrl?: string | null; signoff?: string }) {
-  const logo = `${env("SITE_URL")}/assets/logo/nv-horizontal-reverse.png`;
+  const logo = `${clientUrl()}/assets/logo/nv-horizontal-reverse.png`;
   return `<!doctype html><html><body style="margin:0;background:${SAND};padding:24px 12px;font-family:Arial,Helvetica,sans-serif;color:${BODY}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:${SNOW};border-radius:10px;overflow:hidden">

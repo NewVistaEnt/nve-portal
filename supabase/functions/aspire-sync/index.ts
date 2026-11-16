@@ -1,7 +1,7 @@
 // Runs every 15 minutes (see supabase/cron.sql). Looks for jobs newly marked Won in Aspire,
 // in the branches listed in settings (New Vista only to start), and creates a pending portal
 // for each one. Then emails Jana one alert. Nothing goes to the client until Jana sends it.
-import { admin, env, esc, fail, json, sameText, saveSetting, setting } from "../_shared/util.ts";
+import { admin, env, esc, staffUrl, fail, json, sameText, saveSetting, setting } from "../_shared/util.ts";
 import { plainEmail, sendMail } from "../_shared/email.ts";
 import { primaryContact, property, wonSince } from "../_shared/aspire.ts";
 import { findProject } from "../_shared/companycam.ts";
@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
           subject: created.length === 1 ? "New portal ready to review" : `${created.length} new portals ready to review`,
           html: plainEmail(
             [`${created.length === 1 ? "A job was" : `${created.length} jobs were`} marked Won in Aspire:`, `<b>${created.map(esc).join("<br>")}</b>`, "Review each portal and press Approve &amp; send when it looks right."],
-            { label: "Review portals", url: `${env("SITE_URL")}/admin/#portals` },
+            { label: "Review portals", url: `${staffUrl()}/admin/#portals` },
           ),
         });
       }

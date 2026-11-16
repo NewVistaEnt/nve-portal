@@ -3,7 +3,7 @@
 //   { action: "ensure-login", email }                 -> lets a staff member sign in
 //   { action: "send-invite", portal_id, person_ids? }  -> emails the welcome + sign-in link
 //   { action: "aspire-check" }                         -> runs the Aspire check right now
-import { admin, callerEmail, cors, env, esc, fail, json, staffFor } from "../_shared/util.ts";
+import { admin, callerEmail, clientUrl, cors, env, esc, fail, json, staffFor } from "../_shared/util.ts";
 import { brandedEmail, sendMail } from "../_shared/email.ts";
 import { coverUrl, ensureUser } from "../_shared/portal.ts";
 
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     if (!people?.length) return fail(req, "No one to invite. Add a person with an email first.");
 
     const cover = await coverUrl(portal.cover_path);
-    const portalUrl = `${env("SITE_URL")}/portal/?p=${portal.id}`;
+    const portalUrl = `${clientUrl()}/portal/?p=${portal.id}`;
     const sent: string[] = [], failed: string[] = [];
 
     for (const person of people) {

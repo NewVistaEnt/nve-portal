@@ -2,7 +2,7 @@
 // is sent through Resend and looks like New Vista.
 // Set up in Supabase: Authentication -> Hooks -> Send Email Hook -> HTTPS -> this function's URL.
 import { Webhook } from "npm:standardwebhooks@1.0.0";
-import { admin, env, esc } from "../_shared/util.ts";
+import { admin, clientUrl, env, esc } from "../_shared/util.ts";
 import { brandedEmail, plainEmail, sendMail } from "../_shared/email.ts";
 
 type Payload = {
@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
   const email = user.email.toLowerCase();
   // Link to our own page with the token in the address. The page only uses the token when the person
   // presses "Sign in", so email security scanners that open links can't use it up first.
-  const target = new URL(d.redirect_to || env("SITE_URL"));
+  const target = new URL(d.redirect_to || clientUrl());
   target.searchParams.set("th", d.token_hash);
   target.searchParams.set("tt", d.email_action_type);
   const link = target.toString();

@@ -2,7 +2,7 @@
 // GET  (header x-staff-code) -> lists for the form (names, owners, sources, brands)
 // POST (header x-staff-code) -> saves the lead (hidden; admins only can read it) and alerts Jana.
 // The alert email never contains client details, only a link to the admin page.
-import { admin, cors, env, esc, fail, json, isEmail, sameText, setting } from "../_shared/util.ts";
+import { admin, cors, env, esc, staffUrl, fail, json, isEmail, sameText, setting } from "../_shared/util.ts";
 import { plainEmail, sendMail } from "../_shared/email.ts";
 
 const clip = (v: unknown, n = 300) => String(v ?? "").trim().slice(0, n);
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
         subject: `New lead #${data.id} from ${row.submitted_by}`,
         html: plainEmail(
           [`${esc(row.submitted_by)} sent in a new ${esc(row.brand)} ${kind.toLowerCase()} lead.`, "It's waiting in New Leads. Enter it into Aspire, then mark it entered."],
-          { label: "Open New Leads", url: `${env("SITE_URL")}/admin/#leads` },
+          { label: "Open New Leads", url: `${staffUrl()}/admin/#leads` },
           "Client details stay in the admin page and are not included in this email.",
         ),
       });

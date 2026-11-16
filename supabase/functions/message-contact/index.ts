@@ -1,6 +1,6 @@
 // "Message Jana": a client writes a note on their portal; it's emailed to their contact
 // (reply goes straight back to the client) and kept in a log.
-import { admin, callerEmail, cors, env, esc, fail, json } from "../_shared/util.ts";
+import { admin, callerEmail, cors, env, esc, staffUrl, fail, json } from "../_shared/util.ts";
 import { plainEmail, sendMail } from "../_shared/email.ts";
 
 Deno.serve(async (req) => {
@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
     subject: `Message from ${me.name} · ${p.project_name}`,
     html: plainEmail(
       [`<b>${esc(me.name)}</b> (${esc(email)}) wrote from their project page:`, `<div style="border-left:3px solid #CC6748;padding:4px 0 4px 14px;white-space:pre-wrap">${esc(body)}</div>`],
-      { label: "Open this portal", url: `${env("SITE_URL")}/admin/#portal/${p.id}` },
+      { label: "Open this portal", url: `${staffUrl()}/admin/#portal/${p.id}` },
       "Reply to this email to answer them directly.",
     ),
   });

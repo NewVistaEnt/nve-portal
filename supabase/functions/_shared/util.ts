@@ -7,6 +7,10 @@ export const env = (k: string, fallback?: string): string => {
   return v;
 };
 
+// Staff pages (admin, lead form, posting) and client pages (portal) can live at different addresses.
+export const staffUrl = () => (Deno.env.get("STAFF_URL") ?? env("SITE_URL")).replace(/\/$/, "");
+export const clientUrl = () => (Deno.env.get("CLIENT_URL") ?? env("SITE_URL")).replace(/\/$/, "");
+
 // Pages are served from these addresses (comma-separated in SITE_ORIGINS).
 const origins = () => (Deno.env.get("SITE_ORIGINS") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 
