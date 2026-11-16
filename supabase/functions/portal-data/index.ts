@@ -2,7 +2,7 @@
 //   POST { portal_id? }                               -> the portal
 //   POST { portal_id, action: "file", attachment_id }  -> one document (base64)
 // Admins and the portal's teammates can call this too, to preview exactly what the client sees.
-import { admin, callerEmail, cors, fail, json, setting, staffFor } from "../_shared/util.ts";
+import { admin, callerEmail, cors, fail, json, setting, staffFor, staffUrl } from "../_shared/util.ts";
 import { customerFile, customerFiles, invoices, schedule } from "../_shared/aspire.ts";
 import { clientPhotos } from "../_shared/companycam.ts";
 import { coverUrl } from "../_shared/portal.ts";
@@ -31,6 +31,8 @@ Deno.serve(async (req) => {
     const { data: ok } = staff.role === "admin" ? { data: true } : await db.rpc("can_post_as", { p: portalId, e: email });
     preview = Boolean(ok);
   }
+  // Staff who open the client site without a project: point them to the admin instead of an error.
+  if (!portalId && staff) return json(req, { staffOnly: true, name: staff.name, admin_url: `${staffUrl()}/admin/#portals` });
   if (!portalId || (!allowed.has(portalId) && !preview)) {
     return fail(req, allowed.size ? "That project isn't on your account." : "We couldn't find a project for this email. Please contact New Vista.", 404);
   }

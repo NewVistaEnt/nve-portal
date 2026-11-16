@@ -24,6 +24,11 @@
     app.innerHTML = '<p class="loading">Loading your project…</p>';
     try {
       D = await NV.fn("portal-data", { portal_id: portalId || undefined });
+      if (D.staffOnly) {
+        app.innerHTML = '<div class="signin photo"><div class="wrap" style="width:100%;display:grid;place-items:center"><div class="sbox"><img class="logo" src="../assets/logo/nv-horizontal.svg" alt="New Vista Enterprises"><h1>Hi ' + esc(D.name.split(" ")[0]) + '</h1><p>This is the client side. You\'re signed in as New Vista staff, so open client pages from the admin with <b>Preview as the client</b>.</p><a class="btn go" style="width:100%;margin-top:14px;padding:13px" href="' + esc(D.admin_url) + '">Go to the admin</a><button class="btn quiet" type="button" id="out">Sign out</button></div></div></div>';
+        $("#out").addEventListener("click", async function () { await NV.sb.auth.signOut(); location.reload(); });
+        return;
+      }
       if (!portalId && D.portal) history.replaceState(null, "", "?p=" + D.portal.id + location.hash);
       portalId = D.portal.id;
       render();
